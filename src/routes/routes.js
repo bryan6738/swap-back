@@ -39,7 +39,7 @@ router.post('/log-exchange', (req, res) => {
                 address_from, address_to, inputUSD, outputUSD, timestamp, primary_rate, 
                 primary_referral_reward_usd, btc_usd_rate, exchange_finished, ip_address, 
                 user_agent, site_language, accept_language, device_timezone, device_operating_system
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const params = [

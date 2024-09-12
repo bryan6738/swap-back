@@ -1,4 +1,4 @@
-const { db } = require('../config/config');
+const { db } = require("../config/config");
 
 const createTables = () => {
     db.serialize(() => {
@@ -6,7 +6,8 @@ const createTables = () => {
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY,
                 username TEXT,
-                referred_by INTEGER
+                referred_by INTEGER,
+                ton_coin_address TEXT
             )
         `);
 
