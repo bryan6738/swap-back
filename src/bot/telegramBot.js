@@ -207,6 +207,7 @@ bot.onText(/\/run/, async (msg) => {
     bot.sendMessage(chatId, i18next.t("Click one of the options below:"), options);
 });
 
+// Handle /referral command
 bot.onText(/\/referral/, async (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -291,7 +292,6 @@ bot.onText(/\/referral/, async (msg) => {
 bot.onText(/\/update_address/, (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
-    const username = msg.from.username || "unknown";
 
     requestTonCoinAddress(chatId, userId, username);
 });
