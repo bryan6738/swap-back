@@ -7,63 +7,62 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 
 i18next.use(Backend).init({
-    fallbackLng: 'en',
-    preload: ['en', 'ru', 'ch'],
+    fallbackLng: "en",
+    preload: ["en", "ru", "ch"],
     backend: {
-        loadPath: './src/locales/{{lng}}/translation.json', // Translation files path
+        loadPath: "./src/locales/{{lng}}/translation.json",
     },
     debug: false,
 });
 
 const getUserLanguage = async (userId) => {
     const user = await db.collection("users").findOne({ user_id: userId });
-    return user && user.language ? user.language : 'en'; 
+    return user && user.language ? user.language : "en";
 };
 
 const sendTranslatedMessage = async (chatId, key, options = {}) => {
     const language = await getUserLanguage(chatId);
     await i18next.changeLanguage(language);
     const message = i18next.t(key, options);
-    bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
-  };
+    bot.sendMessage(chatId, message, { parse_mode: "HTML" });
+};
 
 const updateUserLanguage = async (userId, language) => {
-    await db.collection("users").updateOne(
-        { user_id: userId },
-        { $set: { language: language } }
-    );
+    await db
+        .collection("users")
+        .updateOne({ user_id: userId }, { $set: { language: language } });
 };
 
 const sendInfoMessage = async (chatId) => {
     try {
         const totalRegisters = await db.collection("users").countDocuments();
-        const uniqueUsers = await db.collection("exchange_logs").aggregate([
-            {
-                $match: {
-                    $or: [
-                        { exchange_finished: 1 },
-                        { exchange_finished: true }
-                    ]
-                }
-            },
-            {
-                $group: {
-                    _id: "$user_id"
-                }
-            },
-            {
-                $count: "uniqueUserCount"
-            }
-        ]).toArray();
+        const uniqueUsers = await db
+            .collection("exchange_logs")
+            .aggregate([
+                {
+                    $match: {
+                        $or: [
+                            { exchange_finished: 1 },
+                            { exchange_finished: true },
+                        ],
+                    },
+                },
+                {
+                    $group: {
+                        _id: "$user_id",
+                    },
+                },
+                {
+                    $count: "uniqueUserCount",
+                },
+            ])
+            .toArray();
         const totalUsers = uniqueUsers[0].uniqueUserCount || 0;
 
         const totalExchanges = await db
             .collection("exchange_logs")
             .countDocuments({
-                $or: [
-                    { exchange_finished: 1 },
-                    { exchange_finished: true },
-                ],
+                $or: [{ exchange_finished: 1 }, { exchange_finished: true }],
             });
 
         const totalVolumeDocs = await db
@@ -102,8 +101,8 @@ const sendInfoMessage = async (chatId) => {
             totalUsers,
             totalExchanges,
             totalVolume: totalVolume.toFixed(2),
-            totalRevShare: totalRevShare.toFixed(2)
-        })
+            totalRevShare: totalRevShare.toFixed(2),
+        });
     } catch (err) {
         console.error("Error fetching statistics:", err.message);
         bot.sendMessage(
@@ -114,8 +113,11 @@ const sendInfoMessage = async (chatId) => {
 };
 
 // Utility function to request TON coin address
-const requestTonCoinAddress = (chatId, userId, username) => {
-    sendTranslatedMessage(chatId, "Please provide your TON coin address to receive your rewards (e.g., EQA-B8bcD...)")
+const requestTonCoinAddress = (chatId, userId) => {
+    sendTranslatedMessage(
+        chatId,
+        "Please provide your TON coin address to receive your rewards (e.g., EQA-B8bcD...)",
+    );
     bot.once("message", async (msg) => {
         if (msg.chat.id === chatId) {
             const tonCoinAddress = msg.text.trim();
@@ -172,7 +174,7 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
                 username,
                 referred_by: userId == referredBy ? null : referredBy,
                 reward_amount: 0,
-                language: 'en'
+                language: "en",
             });
             console.log("New user added:", username);
             setTimeout(() => {
@@ -198,16 +200,22 @@ bot.onText(/\/run/, async (msg) => {
                         text: i18next.t("Get Referral Link"),
                         callback_data: "get_referral_link",
                     },
-                    { text: i18next.t("Update Address"), callback_data: "update_address" },
+                    {
+                        text: i18next.t("Update Address"),
+                        callback_data: "update_address",
+                    },
                 ],
             ],
         },
     };
 
-    bot.sendMessage(chatId, i18next.t("Click one of the options below:"), options);
+    bot.sendMessage(
+        chatId,
+        i18next.t("Click one of the options below:"),
+        options,
+    );
 });
 
-// Handle /referral command
 bot.onText(/\/referral/, async (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -222,10 +230,7 @@ bot.onText(/\/referral/, async (msg) => {
             .collection("exchange_logs")
             .find({
                 user_id: { $in: referredUsers.map((user) => user.user_id) },
-                $or: [
-                    { exchange_finished: 1 },
-                    { exchange_finished: true },
-                ],
+                $or: [{ exchange_finished: 1 }, { exchange_finished: true }],
             })
             .toArray();
 
@@ -273,16 +278,15 @@ bot.onText(/\/referral/, async (msg) => {
         }
 
         const referralLink = `https://t.me/TeleSwapAppBot?start=${userId}`;
-        console.log(TotalReferrals);
         sendTranslatedMessage(chatId, "referralInfo", {
-                MyReferrals,
-                MyVolume: MyVolume.toFixed(2),
-                MyRewards: MyRewards.toFixed(2),
-                TotalReferrals,
-                TotalVolume: TotalVolume.toFixed(2),
-                TotalRewards: TotalRewards.toFixed(2),
-                referralLink
-            });
+            MyReferrals,
+            MyVolume: MyVolume.toFixed(2),
+            MyRewards: MyRewards.toFixed(2),
+            TotalReferrals,
+            TotalVolume: TotalVolume.toFixed(2),
+            TotalRewards: TotalRewards.toFixed(2),
+            referralLink,
+        });
     } catch (err) {
         console.error("Error handling /referral command:", err.message);
         sendTranslatedMessage(chatId, "An error occurred. Please try again.");
@@ -293,7 +297,7 @@ bot.onText(/\/update_address/, (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
 
-    requestTonCoinAddress(chatId, userId, username);
+    requestTonCoinAddress(chatId, userId);
 });
 
 bot.onText(/\/update_language/, async (msg) => {
@@ -301,7 +305,7 @@ bot.onText(/\/update_language/, async (msg) => {
     const userId = msg.from.id;
     const language = await getUserLanguage(chatId);
     await i18next.changeLanguage(language);
-    const availableLanguages = ['en', 'ru', 'ch'];
+    const availableLanguages = ["en", "ru", "ch"];
 
     const languageOptions = availableLanguages.map((lang) => ({
         text: lang.toUpperCase(),
@@ -314,13 +318,17 @@ bot.onText(/\/update_language/, async (msg) => {
         },
     };
 
-    bot.sendMessage(chatId, i18next.t("Please select your preferred language:"), options);
+    bot.sendMessage(
+        chatId,
+        i18next.t("Please select your preferred language:"),
+        options,
+    );
 });
 
 bot.onText(/\/support/, (msg) => {
     const chatId = msg.chat.id;
     const username = msg.from.username || "";
-    sendTranslatedMessage(chatId, "welcomeMessage", {username});
+    sendTranslatedMessage(chatId, "welcomeMessage", { username });
     bot.once("message", async (msg) => {
         if (msg.chat.id === chatId) {
             const exchange_id = msg.text.trim();
@@ -340,26 +348,40 @@ bot.onText(/\/support/, (msg) => {
 
                     switch (exchange.status) {
                         case "waiting":
-                            sendTranslatedMessage(chatId, "waitingMessage", {fromCurrency});
+                            sendTranslatedMessage(chatId, "waitingMessage", {
+                                fromCurrency,
+                            });
                             break;
                         case "confirming":
-                            sendTranslatedMessage(chatId, "confirmingMessage", {fromCurrency, hash_from: exchange.hash_from || ""});
+                            sendTranslatedMessage(chatId, "confirmingMessage", {
+                                fromCurrency,
+                                hash_from: exchange.hash_from || "",
+                            });
                             break;
                         case "exchanging":
-                            sendTranslatedMessage(chatId, "exchangingMessage", {fromCurrency, toCurrency});
+                            sendTranslatedMessage(chatId, "exchangingMessage", {
+                                fromCurrency,
+                                toCurrency,
+                            });
                             break;
                         case "sending":
-                            sendTranslatedMessage(chatId, "sendingMessage", {fromCurrency, toCurrency});
+                            sendTranslatedMessage(chatId, "sendingMessage", {
+                                fromCurrency,
+                                toCurrency,
+                            });
                             break;
                         case "finished":
                         case "confirmed":
-                            sendTranslatedMessage(chatId, "finishedMessage", {fromCurrency, toCurrency, hash_to: exchange.hash_to || ""});
+                            sendTranslatedMessage(chatId, "finishedMessage", {
+                                fromCurrency,
+                                toCurrency,
+                                hash_to: exchange.hash_to || "",
+                            });
                             break;
                         default:
                             sendTranslatedMessage(chatId, "unableSupport");
                             break;
                     }
-
                 } else {
                     sendTranslatedMessage(
                         chatId,
@@ -393,9 +415,9 @@ bot.on("callback_query", async (callbackQuery) => {
     try {
         if (callbackData === "get_referral_link") {
             const referralLink = `https://t.me/TeleSwapAppBot?start=${userId}`;
-            bot.sendMessage(chatId, `Your referral link: ${referralLink}`);
+            sendTranslatedMessage(chatId, "referralLink", {referralLink});
         } else if (callbackData === "update_address") {
-            bot.sendMessage(
+            sendTranslatedMessage(
                 chatId,
                 "Please provide your new TON coin address:",
             );
@@ -413,7 +435,7 @@ bot.on("callback_query", async (callbackQuery) => {
                                 { $set: { ton_coin_address: tonCoinAddress } },
                             );
 
-                        bot.sendMessage(
+                        sendTranslatedMessage(
                             chatId,
                             "Your TON coin address has been updated successfully! ✅",
                         );
@@ -425,7 +447,7 @@ bot.on("callback_query", async (callbackQuery) => {
                             "Error updating TON coin address:",
                             err.message,
                         );
-                        bot.sendMessage(
+                        sendTranslatedMessage(
                             chatId,
                             "There was an error saving your address. Please try again.",
                         );
@@ -435,10 +457,10 @@ bot.on("callback_query", async (callbackQuery) => {
         } else if (callbackData.startsWith("update_language_")) {
             const selectedLanguage = callbackData.split("_")[2];
             await updateUserLanguage(userId, selectedLanguage);
-    
+
             await sendTranslatedMessage(
                 chatId,
-                "Your language has been updated successfully!"
+                "Your language has been updated successfully!",
             );
         }
     } catch (err) {

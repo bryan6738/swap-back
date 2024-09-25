@@ -20,5 +20,7 @@
     "We're unable to determine the status of your swap. Please contact @TeleSwapSupport.": "我们无法确定您的兑换状态。请联系 @TeleSwapSupport。",
     "This Transaction ID does not exist. Please input the correct transaction ID.": "该交易ID不存在。请输入正确的交易ID。",
     "There was an error finding your transaction. Please try again.": "查找您的交易时出错。请再试一次。",
-    "helpMessage": "<b>如何使用 TeleSwap 机器人：</b>\n\n1. <b>/start:</b> 开始使用机器人并获取概述。\n2. <b>/run:</b> 启动应用并开始互动。\n3. <b>/referral:</b> 获取您的独特推荐链接以分享。\n4. <b>/update_address:</b> 提供或更新您的 TON 币地址。\n5. <b>/update_language:</b> 提供或更新您的首选语言。\n6. <b>/support:</b> 支持兑换。\n\n需要更多帮助？请联系 @TeleSwapSupport 或 <a href=\"https://teleswap.io/\">访问我们的网站</a>。"
+    "helpMessage": "<b>如何使用 TeleSwap 机器人：</b>\n\n1. <b>/start:</b> 开始使用机器人并获取概述。\n2. <b>/run:</b> 启动应用并开始互动。\n3. <b>/referral:</b> 获取您的独特推荐链接以分享。\n4. <b>/update_address:</b> 提供或更新您的 TON 币地址。\n5. <b>/update_language:</b> 提供或更新您的首选语言。\n6. <b>/support:</b> 支持兑换。\n\n需要更多帮助？请联系 @TeleSwapSupport 或 <a href=\"https://teleswap.io/\">访问我们的网站</a>。",
+    "Please provide your new TON coin address:": "请提供您的新TON币地址。",
+    "referralLink": "您的推荐链接: {{referralLink}}"
 }
