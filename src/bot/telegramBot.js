@@ -2,6 +2,7 @@ const TelegramBot = require("node-telegram-bot-api");
 const i18next = require("i18next");
 const Backend = require("i18next-fs-backend");
 const { db } = require("../config/config");
+const axios = require('axios');
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
@@ -112,7 +113,6 @@ const sendInfoMessage = async (chatId) => {
     }
 };
 
-// Utility function to request TON coin address
 const requestTonCoinAddress = (chatId, userId) => {
     sendTranslatedMessage(
         chatId,
@@ -142,7 +142,6 @@ const requestTonCoinAddress = (chatId, userId) => {
     });
 };
 
-// Handle /start command with optional referral code
 bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const referredBy = match[1] ? parseInt(match[1]) : null;
@@ -336,9 +335,8 @@ bot.onText(/\/support/, (msg) => {
                 const exchange = await db
                     .collection("exchange_logs")
                     .findOne({ exchange_id: exchange_id });
-
                 if (exchange) {
-                    let message2 = "";
+                    const res = await axios.get(`https://api.simpleswap.io/get_exchange?api_key=${process.env.API_KEY}&id=${exchange_id}`);
                     const fromCurrency = exchange.currency_from
                         ? exchange.currency_from.toUpperCase()
                         : "Unknown";
@@ -346,16 +344,17 @@ bot.onText(/\/support/, (msg) => {
                         ? exchange.currency_to.toUpperCase()
                         : "Unknown";
 
-                    switch (exchange.status) {
+                    switch (res.data.status || exchange.status) {
                         case "waiting":
                             sendTranslatedMessage(chatId, "waitingMessage", {
                                 fromCurrency,
                             });
                             break;
                         case "confirming":
+                            const hash_from = res.data.currencies[res.data.currency_from].tx_explorer.replace("{}", res.data.tx_from);
                             sendTranslatedMessage(chatId, "confirmingMessage", {
                                 fromCurrency,
-                                hash_from: exchange.hash_from || "",
+                                hash_from: exchange.hash_from || hash_from,
                             });
                             break;
                         case "exchanging":
@@ -372,10 +371,11 @@ bot.onText(/\/support/, (msg) => {
                             break;
                         case "finished":
                         case "confirmed":
+                            const hash_to = res.data.currencies[res.data.currency_to].tx_explorer.replace("{}", res.data.tx_to);
                             sendTranslatedMessage(chatId, "finishedMessage", {
                                 fromCurrency,
                                 toCurrency,
-                                hash_to: exchange.hash_to || "",
+                                hash_to: exchange.hash_to || hash_to,
                             });
                             break;
                         default:
@@ -399,13 +399,11 @@ bot.onText(/\/support/, (msg) => {
     });
 });
 
-// Handle /help command
 bot.onText(/\/help/, (msg) => {
     const chatId = msg.chat.id;
     sendTranslatedMessage(chatId, "helpMessage");
 });
 
-// Handle callback queries
 bot.on("callback_query", async (callbackQuery) => {
     const chatId = callbackQuery.message.chat.id;
     const callbackData = callbackQuery.data;
@@ -422,7 +420,6 @@ bot.on("callback_query", async (callbackQuery) => {
                 "Please provide your new TON coin address:",
             );
 
-            // Wait for the next message to update the TON coin address
             bot.once("message", async (msg) => {
                 if (msg.chat.id === chatId) {
                     const tonCoinAddress = msg.text.trim();
@@ -462,6 +459,7 @@ bot.on("callback_query", async (callbackQuery) => {
                 chatId,
                 "Your language has been updated successfully!",
             );
+            await sendInfoMessage(chatId);
         }
     } catch (err) {
         console.error("Error handling callback query:", err.message);
