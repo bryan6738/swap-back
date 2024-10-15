@@ -187,13 +187,13 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
 
 bot.onText(/\/run/, async (msg) => {
     const chatId = msg.chat.id;
-    const webAppUrl = "https://t.me/TeleSwapAppBot?startapp";
+    const webAppUrl = "https://t.me/teleswapapp_bot?startapp";
     const language = await getUserLanguage(chatId);
     await i18next.changeLanguage(language);
     const options = {
         reply_markup: {
             inline_keyboard: [
-                [{ text: i18next.t("Open TeleSwap Mini App"), url: webAppUrl }],
+                [{ text: i18next.t("Open TeleSwap App"), url: webAppUrl }],
                 [
                     {
                         text: i18next.t("Get Referral Link"),
@@ -276,7 +276,7 @@ bot.onText(/\/referral/, async (msg) => {
             }
         }
 
-        const referralLink = `https://t.me/TeleSwapAppBot?start=${userId}`;
+        const referralLink = `https://t.me/teleswapapp_bot?start=${userId}`;
         sendTranslatedMessage(chatId, "referralInfo", {
             MyReferrals,
             MyVolume: MyVolume.toFixed(2),
@@ -412,7 +412,7 @@ bot.on("callback_query", async (callbackQuery) => {
 
     try {
         if (callbackData === "get_referral_link") {
-            const referralLink = `https://t.me/TeleSwapAppBot?start=${userId}`;
+            const referralLink = `https://t.me/teleswapapp_bot?start=${userId}`;
             sendTranslatedMessage(chatId, "referralLink", {referralLink});
         } else if (callbackData === "update_address") {
             sendTranslatedMessage(
